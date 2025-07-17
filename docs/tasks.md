@@ -8,7 +8,7 @@ This document contains a detailed list of actionable improvement tasks for the G
    - [x] `help` - Display available commands and their usage
    - [ ] `version` - Display server version information
    - [ ] `status` - Show server uptime and connection statistics
-   - [ ] `time` - Return the current server time
+   - [x] `time` - Return the current server time
    - [ ] `ping` - Respond with "pong" (for connection testing)
    - [ ] `broadcast <message>` - Send a message to all connected clients
    - [ ] `whoami` - Return client connection information
