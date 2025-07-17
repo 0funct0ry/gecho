@@ -6,6 +6,9 @@ import (
 	"strings"
 )
 
+// Version is the current version of the gecho server
+const Version = "1.0.0"
+
 type Handler func(conn net.Conn, args []string) bool
 
 type CommandExecutor struct {
@@ -15,8 +18,9 @@ type CommandExecutor struct {
 func NewCommandExecutor() *CommandExecutor {
 	return &CommandExecutor{
 		cmdMap: map[string]Handler{
-			"quit": quitHandler,
-			"help": helpHandler,
+			"quit":    quitHandler,
+			"help":    helpHandler,
+			"version": versionHandler,
 		},
 	}
 }
@@ -36,6 +40,7 @@ func helpHandler(conn net.Conn, args []string) bool {
 	helpMessage := `
 Available commands:
   help       - Display this help message
+  version    - Display server version information
   quit       - Close the connection
   <message>  - Echo back the message
 `
@@ -46,6 +51,11 @@ Available commands:
 func quitHandler(conn net.Conn, args []string) bool {
 	_, _ = conn.Write([]byte("Bye!\n"))
 	return false
+}
+
+func versionHandler(conn net.Conn, args []string) bool {
+	_, _ = conn.Write([]byte(fmt.Sprintf("gecho version %s\n", Version)))
+	return true
 }
 
 func echoHandler(conn net.Conn, line string) bool {

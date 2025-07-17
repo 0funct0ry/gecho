@@ -103,8 +103,12 @@ Example interaction:
 help
 Available commands:
   help       - Display this help message
+  version    - Display server version information
   quit       - Close the connection
   <message>  - Echo back the message
+
+version
+gecho version 1.0.0
 
 hello world
 ECHO [hello world]
