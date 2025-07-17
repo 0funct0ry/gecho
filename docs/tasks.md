@@ -5,7 +5,7 @@ This document contains a detailed list of actionable improvement tasks for the G
 ## Core Functionality Improvements
 
 1. [ ] Implement additional TCP commands:
-   - [ ] `help` - Display available commands and their usage
+   - [x] `help` - Display available commands and their usage
    - [ ] `version` - Display server version information
    - [ ] `status` - Show server uptime and connection statistics
    - [ ] `time` - Return the current server time

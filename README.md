@@ -12,6 +12,7 @@ It listens for incoming TCP connections and responds with `ECHO [<request-line>]
 
 - Multi-threaded handling of client connections
 - Simple echo protocol: responds with `ECHO [<message>]`
+- Recognizes `help` command to display available commands and their usage
 - Recognizes `quit` command and gracefully closes the client connection
 - CLI built with [Cobra](https://github.com/spf13/cobra)
 - Customizable bind address and port
@@ -99,6 +100,12 @@ nc localhost 8080
 Example interaction:
 
 ```
+help
+Available commands:
+  help       - Display this help message
+  quit       - Close the connection
+  <message>  - Echo back the message
+
 hello world
 ECHO [hello world]
 
