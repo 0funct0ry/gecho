@@ -103,8 +103,17 @@ Example interaction:
 help
 Available commands:
   help       - Display this help message
+  status     - Show server uptime and connection statistics
   quit       - Close the connection
   <message>  - Echo back the message
+
+status
+Server Status:
+  Uptime: 1h15m30s
+  Total Connections: 42
+  Active Connections: 3
+  Start Time: 2023-07-01T12:34:56Z
+  Address: 0.0.0.0:8080
 
 hello world
 ECHO [hello world]
