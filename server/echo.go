@@ -3,12 +3,12 @@ package server
 import (
 	"bufio"
 	"fmt"
+	"gecho/commands"
 	"io"
 	"log"
 	"net"
 	"strings"
 	"sync"
-	"time"
 )
 
 type EchoServer struct {
@@ -17,6 +17,7 @@ type EchoServer struct {
 	running bool
 	ln      net.Listener
 	wg      sync.WaitGroup
+	exec    *commands.CommandExecutor
 }
 
 func NewEchoServer(host string, port int) *EchoServer {
@@ -24,6 +25,7 @@ func NewEchoServer(host string, port int) *EchoServer {
 		port:    port,
 		host:    host,
 		running: false,
+		exec:    commands.NewCommandExecutor(),
 	}
 }
 
@@ -74,8 +76,6 @@ func (s *EchoServer) handleConnection(conn net.Conn) {
 
 	log.Printf("New connection from %s", conn.RemoteAddr().String())
 
-	_ = conn.SetDeadline(time.Now().Add(5 * time.Minute))
-
 	reader := bufio.NewReader(conn)
 	for {
 		line, err := reader.ReadString('\n')
@@ -88,24 +88,13 @@ func (s *EchoServer) handleConnection(conn net.Conn) {
 
 		line = strings.TrimRight(line, "\r\n")
 
-		if line == "quit" {
-			if n, err := conn.Write([]byte("Bye!\n")); err != nil || n != 5 {
-				log.Printf("Error writing goodbye message: %v", err)
-			}
-			return
+		if line == "" {
+			continue
 		}
 
-		response := []byte(fmt.Sprintf("ECHO: [%s]\n", line))
-		written := 0
-		for written < len(response) {
-			n, err := conn.Write(response[written:])
-			if err != nil {
-				log.Printf("Error writing to connection: %v", err)
-				return
-			}
-			written += n
+		if !s.exec.Execute(conn, line) {
+			break
 		}
 
-		_ = conn.SetDeadline(time.Now().Add(5 * time.Minute))
 	}
 }
