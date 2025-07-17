@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"net"
 	"strings"
+	"time"
 )
 
 type Handler func(conn net.Conn, args []string) bool
@@ -17,6 +18,7 @@ func NewCommandExecutor() *CommandExecutor {
 		cmdMap: map[string]Handler{
 			"quit": quitHandler,
 			"help": helpHandler,
+			"time": timeHandler,
 		},
 	}
 }
@@ -37,6 +39,7 @@ func helpHandler(conn net.Conn, args []string) bool {
 Available commands:
   help       - Display this help message
   quit       - Close the connection
+  time       - Display the current server time
   <message>  - Echo back the message
 `
 	_, _ = conn.Write([]byte(helpMessage))
@@ -50,5 +53,11 @@ func quitHandler(conn net.Conn, args []string) bool {
 
 func echoHandler(conn net.Conn, line string) bool {
 	_, _ = conn.Write([]byte(fmt.Sprintf("ECHO [%s]\n", line)))
+	return true
+}
+
+func timeHandler(conn net.Conn, args []string) bool {
+	currentTime := time.Now().Format(time.RFC3339)
+	_, _ = conn.Write([]byte(fmt.Sprintf("Current server time: %s\n", currentTime)))
 	return true
 }
