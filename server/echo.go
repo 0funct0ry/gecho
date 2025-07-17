@@ -9,24 +9,39 @@ import (
 	"net"
 	"strings"
 	"sync"
+	"sync/atomic"
+	"time"
 )
 
 type EchoServer struct {
-	port    int
-	host    string
-	running bool
-	ln      net.Listener
-	wg      sync.WaitGroup
-	exec    *commands.CommandExecutor
+	port              int
+	host              string
+	running           bool
+	ln                net.Listener
+	wg                sync.WaitGroup
+	exec              *commands.CommandExecutor
+	startTime         time.Time
+	totalConnections  uint64
+	activeConnections int32
 }
 
 func NewEchoServer(host string, port int) *EchoServer {
-	return &EchoServer{
-		port:    port,
-		host:    host,
-		running: false,
-		exec:    commands.NewCommandExecutor(),
+	server := &EchoServer{
+		port:              port,
+		host:              host,
+		running:           false,
+		totalConnections:  0,
+		activeConnections: 0,
 	}
+
+	// Create a status provider function that calls GetStatus on this server instance
+	statusProvider := func() map[string]interface{} {
+		return server.GetStatus()
+	}
+
+	server.exec = commands.NewCommandExecutor(statusProvider)
+
+	return server
 }
 
 func (s *EchoServer) Start() error {
@@ -41,6 +56,7 @@ func (s *EchoServer) Start() error {
 
 	s.ln = ln
 	s.running = true
+	s.startTime = time.Now()
 	log.Printf("Echo server listening on %s:%d", s.host, s.port)
 
 	for s.running {
@@ -70,10 +86,27 @@ func (s *EchoServer) Stop() error {
 	return nil
 }
 
+func (s *EchoServer) GetStatus() map[string]interface{} {
+	uptime := time.Since(s.startTime)
+	return map[string]interface{}{
+		"uptime":            uptime.String(),
+		"uptime_seconds":    int(uptime.Seconds()),
+		"total_connections": atomic.LoadUint64(&s.totalConnections),
+		"active_connections": atomic.LoadInt32(&s.activeConnections),
+		"start_time":        s.startTime.Format(time.RFC3339),
+		"address":           fmt.Sprintf("%s:%d", s.host, s.port),
+	}
+}
+
 func (s *EchoServer) handleConnection(conn net.Conn) {
 	defer s.wg.Done()
-	defer func(conn net.Conn) { _ = conn.Close() }(conn)
+	defer func(conn net.Conn) { 
+		atomic.AddInt32(&s.activeConnections, -1)
+		_ = conn.Close() 
+	}(conn)
 
+	atomic.AddUint64(&s.totalConnections, 1)
+	atomic.AddInt32(&s.activeConnections, 1)
 	log.Printf("New connection from %s", conn.RemoteAddr().String())
 
 	reader := bufio.NewReader(conn)
